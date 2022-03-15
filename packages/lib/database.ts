@@ -193,14 +193,17 @@ export default class Database {
 	async transactionExecBatch(queries: StringOrSqlQuery[]) {
 		if (queries.length <= 0) return;
 
+		// debug
+		// There can be only one transaction running at a time so use a	mutex
+		const release = await this.batchTransactionMutex_.acquire();
+
 		if (queries.length == 1) {
 			const q = this.wrapQuery(queries[0]);
 			await this.exec(q.sql, q.params);
+			release();
 			return;
 		}
 
-		// There can be only one transaction running at a time so use a	mutex
-		const release = await this.batchTransactionMutex_.acquire();
 
 		try {
 			await this.exec('BEGIN TRANSACTION');
