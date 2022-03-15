@@ -205,9 +205,12 @@ export default class Database {
 		try {
 			await this.exec('BEGIN TRANSACTION');
 
+			console.log('===== #queries: ', queries.length);
 			for (let i = 0; i < queries.length; i++) {
+				console.log('===== query start: ', i);
 				const query = this.wrapQuery(queries[i]);
 				await this.exec(query.sql, query.params);
+				console.log('===== query finish: ', i);
 			}
 
 			await this.exec('COMMIT');

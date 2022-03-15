@@ -39,6 +39,7 @@ export default class ItemChange extends BaseModel {
 		// Using a mutex so that records can be added to the database in the
 		// background, without making the UI wait.
 		const release = await ItemChange.addChangeMutex_.acquire();
+		console.log('===== ACQUIRE ItemChange.add', release);
 
 		try {
 			await this.db().transactionExecBatch([
@@ -51,7 +52,10 @@ export default class ItemChange extends BaseModel {
 					params: [itemType, itemId, type, changeSource, Date.now(), beforeChangeItemJson],
 				},
 			]);
+		} catch (error) {
+			console.log('===== ERROR ItemChange', error);
 		} finally {
+			console.log('===== RELEASE ItemChange.add');
 			release();
 			ItemChange.saveCalls_.pop();
 
@@ -71,6 +75,8 @@ export default class ItemChange extends BaseModel {
 	// Because item changes are recorded in the background, this function
 	// can be used for synchronous code, in particular when unit testing.
 	public static async waitForAllSaved() {
+		console.log('============= waitForAllSaved');
+		console.trace();
 		return new Promise((resolve) => {
 			const iid = shim.setInterval(() => {
 				if (!ItemChange.saveCalls_.length) {
